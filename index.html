@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JERRY v4.2 | AI Interface</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f7ff;
+            --secondary: #ff00e6;
+            --bg-dark: #0a0a1a;
+            --bg-light: #1a1a2e;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: linear-gradient(90deg, var(--bg-dark), var(--bg-light));
+            border-bottom: 1px solid rgba(0, 247, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.1);
+        }
+        
+        .awesome {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        .logo img {
+            filter: drop-shadow(0 0 5px var(--primary));
+            transition: all 0.3s ease;
+        }
+        
+        .logo img:hover {
+            transform: rotate(15deg);
+            filter: drop-shadow(0 0 10px var(--secondary));
+        }
+        
+        .chat_icon {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .chat_icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.8);
+        }
+        
+        .chat_icon i {
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .chat_box {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background-color: rgba(26, 26, 46, 0.9);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 247, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            display: none;
+        }
+        
+        .chat_box.active {
+            transform: translateY(0);
+            opacity: 1;
+            display: block;
+        }
+        
+        .conv-form-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(10, 10, 26, 0.5);
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            position: relative;
+            line-height: 1.4;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .user-message {
+            background: rgba(0, 247, 255, 0.1);
+            border-left: 3px solid var(--primary);
+            margin-left: auto;
+            border-top-right-radius: 0;
+        }
+        
+        .bot-message {
+            background: rgba(255, 0, 230, 0.1);
+            border-right: 3px solid var(--secondary);
+            margin-right: auto;
+            border-top-left-radius: 0;
+        }
+        
+        #convForm {
+            display: flex;
+            padding: 10px;
+            background: var(--bg-light);
+            border-top: 1px solid rgba(0, 247, 255, 0.2);
+        }
+        
+        .userInputDynamic {
+            flex: 1;
+            background: rgba(10, 10, 26, 0.7);
+            border: 1px solid rgba(0, 247, 255, 0.3);
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .userInputDynamic:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+        }
+        
+        .submit {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.5);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 247, 255, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 247, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 247, 255, 0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Futuristic decorative elements */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(0, 247, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 247, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Futuristic background elements -->
+    <div class="grid-overlay"></div>
+    <div class="particles" id="particles"></div>
+    
+    <!-- header -->
+    <header>
+        <div class="header-wrapper">
+          <p class="awesome">JERRY v4.2 | QUANTUM INTERFACE</p>
+            <div class="logo">
+                <img src="images/icon.png" width="35" height="33">
+            </div>
+        </div>
+    </header>
+    
+    <!-- ChatBot -->
+    <div class="chat_icon" id="chatIcon">
+        <i class="fa fa-comments" aria-hidden="true"></i>
+    </div>
+
+    <div class="chat_box" id="chatBox">
+        <div class="conv-form-wrapper">
+            <div id="messages">
+                <div class="message bot-message">
+                    <div class="message-header" style="color: var(--secondary); font-size: 0.8rem; margin-bottom: 5px;">
+                        SYSTEM INITIALIZED
+                    </div>
+                    Greetings, user. I am JERRY 4.2, your quantum-assisted AI interface. How may I assist you today?
+                </div>
+            </div>
+            
+            <div id="convForm">
+                <input type="text" id="userInput" placeholder="Enter neural query..." class="userInputDynamic">
+                <button id="userInputButton" type="button" class="submit">
+                    <i class="fa fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="text/javascript" src="js/main.js"></script>
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random position
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const size = Math.random() * 3 + 1;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 10;
+                
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `-${delay}s`;
+                
+                // Random color variation
+                const hue = Math.random() * 60 + 180; // Blue-cyan range
+                particle.style.backgroundColor = `hsla(${hue}, 100%, 70%, ${Math.random() * 0.5 + 0.3})`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Toggle chat box
+        document.getElementById('chatIcon').addEventListener('click', function() {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.classList.toggle('active');
+            
+            if (chatBox.classList.contains('active')) {
+                document.getElementById('userInput').focus();
+            }
+        });
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Add sample messages (replace with actual chat functionality)
+            const messages = document.getElementById('messages');
+            
+            document.getElementById('userInputButton').addEventListener('click', function() {
+                const userInput = document.getElementById('userInput');
+                if (userInput.value.trim() !== '') {
+                    // Add user message
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'message user-message';
+                    userMessage.textContent = userInput.value;
+                    messages.appendChild(userMessage);
+                    
+                    // Simulate bot response
+                    setTimeout(() => {
+                        const botMessage = document.createElement('div');
+                        botMessage.className = 'message bot-message';
+                        botMessage.innerHTML = `
+                            <div class="message-header" style="color: var(--secondary); font-size: 0.8rem; margin-bottom: 5px;">
+                                QUANTUM PROCESSING COMPLETE
+                            </div>
+                            I've analyzed your query through quantum probability matrices. The most optimal response suggests continuing our conversation for enhanced understanding.
+                        `;
+                        messages.appendChild(botMessage);
+                        messages.scrollTop = messages.scrollHeight;
+                    }, 800);
+                    
+                    userInput.value = '';
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            });
+            
+            // Allow Enter key to send message
+            document.getElementById('userInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('userInputButton').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
