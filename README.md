@@ -2,7 +2,7 @@
 
 A hands-free virtual mouse that controls your computer using hand gestures and voice commands, powered by Python, OpenCV, and Speech Recognition.
 
-![Demo](Screenshot 2025-05-22 193517.png) 
+![Demo](Smart-Assistant-Smarter.gif) 
 
 ## ✨ Features
 - **Cursor Control**: Move pointer with hand gestures
